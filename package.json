@@ -1,19 +1,23 @@
 {
-	"name": "n8n-nodes-<...>",
+	"name": "n8n-nodes-puppeteer-with-browserless",
 	"version": "0.1.0",
-	"description": "",
+	"description": "n8n community node for controlling Puppeteer via a self-hosted Browserless instance",
 	"license": "MIT",
-	"homepage": "",
+	"homepage": "https://github.com/seoyeongki/n8n-nodes-puppeteer-with-browserless",
 	"keywords": [
-		"n8n-community-node-package"
+		"n8n-community-node-package",
+		"puppeteer",
+		"browserless",
+		"browser-automation",
+		"web-scraping"
 	],
 	"author": {
-		"name": "",
+		"name": "seoyeongki",
 		"email": ""
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/<...>/n8n-nodes-<...>.git"
+		"url": "https://github.com/seoyeongki/n8n-nodes-puppeteer-with-browserless.git"
 	},
 	"scripts": {
 		"build": "n8n-node build",
@@ -31,13 +35,14 @@
 		"n8nNodesApiVersion": 1,
 		"strict": true,
 		"credentials": [
-			"dist/credentials/GithubIssuesApi.credentials.js",
-			"dist/credentials/GithubIssuesOAuth2Api.credentials.js"
+			"dist/credentials/BrowserlessApi.credentials.js"
 		],
 		"nodes": [
-			"dist/nodes/GithubIssues/GithubIssues.node.js",
-			"dist/nodes/Example/Example.node.js"
+			"dist/nodes/PuppeteerBrowserless/PuppeteerBrowserless.node.js"
 		]
+	},
+	"dependencies": {
+		"puppeteer-core": "^22.15.0"
 	},
 	"devDependencies": {
 		"@n8n/node-cli": "*",
@@ -48,5 +53,6 @@
 	},
 	"peerDependencies": {
 		"n8n-workflow": "*"
-	}
+	},
+	"packageManager": "pnpm@10.30.3"
 }
