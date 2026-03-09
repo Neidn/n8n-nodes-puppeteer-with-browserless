@@ -15,9 +15,9 @@ export class BrowserlessApi implements ICredentialType {
 			name: 'browserlessUrl',
 			type: 'string',
 			default: 'ws://localhost:3000',
-			placeholder: 'ws://your-browserless-host:3000',
+			placeholder: 'https://browserless.example.com',
 			description:
-				'WebSocket URL of your self-hosted Browserless instance (e.g. ws://localhost:3000 or wss://browserless.example.com)',
+				'URL of your Browserless instance. Accepts https://, http://, wss://, or ws://. If no port is specified, 443 is used for secure connections and 80 for plain.',
 			required: true,
 		},
 		{

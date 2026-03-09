@@ -3,13 +3,49 @@ import type { Browser, Page } from 'puppeteer-core';
 import type { BrowserlessSession, PageOptions } from './types';
 
 /**
+ * Returns true if the credential URL is secure (wss:// or https://).
+ */
+function isSecureUrl(url: string): boolean {
+	return /^wss:\/\/|^https:\/\//.test(url);
+}
+
+/**
+ * Normalizes any Browserless credential URL (http/https/ws/wss) to a proper
+ * WebSocket URL with an explicit port.
+ *   https://host       → wss://host:443
+ *   http://host:3000   → ws://host:3000
+ *   wss://host         → wss://host:443
+ *   ws://host:3000     → ws://host:3000
+ */
+function toWsUrl(browserlessUrl: string): string {
+	const clean = browserlessUrl.replace(/\/+$/, '');
+	const secure = isSecureUrl(clean);
+	const httpUrl = clean
+		.replace(/^wss:\/\//, 'https://')
+		.replace(/^ws:\/\//, 'http://');
+	const parsed = new URL(httpUrl);
+	const port = parsed.port || (secure ? '443' : '80');
+	const protocol = secure ? 'wss:' : 'ws:';
+	return `${protocol}//${parsed.hostname}:${port}`;
+}
+
+/**
+ * Converts a Browserless URL (ws/wss/http/https) to its HTTP equivalent for REST calls.
+ */
+function toHttpUrl(browserlessUrl: string): string {
+	return browserlessUrl
+		.replace(/^wss:\/\//, 'https://')
+		.replace(/^ws:\/\//, 'http://')
+		.replace(/\/+$/, '');
+}
+
+/**
  * Builds the Browserless WebSocket endpoint URL.
+ * Accepts http/https/ws/wss — always produces a wss:// or ws:// URL.
  * Appends the API token as a query parameter when provided.
- * The returned URL is used for session reuse: all items in a single
- * execute() call share one browser connection via this endpoint.
  */
 export function buildWsEndpoint(browserlessUrl: string, apiToken: string): string {
-	const base = browserlessUrl.replace(/\/+$/, '');
+	const base = toWsUrl(browserlessUrl);
 	return apiToken ? `${base}?token=${encodeURIComponent(apiToken)}` : base;
 }
 
@@ -23,21 +59,10 @@ export async function connectBrowser(wsEndpoint: string): Promise<Browser> {
 }
 
 /**
- * Converts a WebSocket Browserless URL to its HTTP equivalent for REST calls.
- * e.g. wss://host:443 → https://host:443, ws://host:3000 → http://host:3000
- */
-function wsUrlToHttp(browserlessUrl: string): string {
-	return browserlessUrl
-		.replace(/^wss:\/\//, 'https://')
-		.replace(/^ws:\/\//, 'http://')
-		.replace(/\/+$/, '');
-}
-
-/**
  * Fetches the list of active Browserless sessions via the /sessions HTTP endpoint.
  */
 export async function getSessions(browserlessUrl: string, apiToken: string): Promise<BrowserlessSession[]> {
-	const base = wsUrlToHttp(browserlessUrl);
+	const base = toHttpUrl(browserlessUrl);
 	const url = apiToken ? `${base}/sessions?token=${encodeURIComponent(apiToken)}` : `${base}/sessions`;
 	const res = await fetch(url);
 	if (!res.ok) {
@@ -48,16 +73,17 @@ export async function getSessions(browserlessUrl: string, apiToken: string): Pro
 
 /**
  * Fixes the browserWSEndpoint returned by /sessions, which contains 0.0.0.0:3000
- * as the host. Replaces it with the real host (and port) from the credential URL.
+ * as the host. Replaces it with the real host and port from the credential URL.
+ * Always produces a wss:// or ws:// URL with explicit port.
  */
 export function fixSessionEndpoint(rawEndpoint: string, browserlessUrl: string): string {
-	const cleanBrowserless = browserlessUrl.replace(/\/+$/, '');
-	// Parse the target host from the credential URL (ws/wss → http/https for URL parsing)
-	const targetUrl = new URL(wsUrlToHttp(cleanBrowserless));
-	// Parse the raw endpoint (ws/wss → http/https for URL parsing)
+	const normalized = toWsUrl(browserlessUrl);
+	const target = new URL(normalized.replace(/^wss?:\/\//, 'http://'));
+	// Parse raw endpoint (ws/wss → http for URL parsing)
 	const raw = new URL(rawEndpoint.replace(/^wss?:\/\//, 'http://'));
-	raw.host = targetUrl.host;
-	raw.protocol = cleanBrowserless.startsWith('wss://') ? 'wss:' : 'ws:';
+	raw.hostname = target.hostname;
+	raw.port = target.port;
+	raw.protocol = isSecureUrl(browserlessUrl) ? 'wss:' : 'ws:';
 	return raw.toString();
 }
 
