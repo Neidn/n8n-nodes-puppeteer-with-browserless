@@ -1,6 +1,9 @@
 import type {
+	ICredentialTestFunctions,
+	ICredentialsDecrypted,
 	IDataObject,
 	IExecuteFunctions,
+	INodeCredentialTestResult,
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
@@ -77,6 +80,34 @@ return { title };`,
 				],
 			},
 		],
+	};
+
+	methods = {
+		credentialTest: {
+			async browserlessApiTest(
+				this: ICredentialTestFunctions,
+				credential: ICredentialsDecrypted,
+			): Promise<INodeCredentialTestResult> {
+				const { browserlessUrl, apiToken } = credential.data as {
+					browserlessUrl: string;
+					apiToken: string;
+				};
+
+				const wsEndpoint = buildWsEndpoint(browserlessUrl, apiToken ?? '');
+
+				try {
+					const browser = await connectBrowser(wsEndpoint);
+					await browser.disconnect();
+					return { status: 'OK', message: 'Connected to Browserless successfully' };
+				} catch (error) {
+					const msg = (error as Error).message ?? String(error);
+					return {
+						status: 'Error',
+						message: `Cannot connect to Browserless (${wsEndpoint}): ${msg}`,
+					};
+				}
+			},
+		},
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
