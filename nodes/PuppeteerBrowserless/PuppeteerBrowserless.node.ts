@@ -240,12 +240,27 @@ export class PuppeteerBrowserless implements INodeType {
 			}
 
 			try {
+				// When reusing an existing session, reuse the existing open page so that
+				// navigation, cookies and DOM state are preserved across nodes.
+				// When opening a fresh connection, create a new page and close it after.
 				let page;
+				let ownPage: boolean;
 				try {
-					page = await newConfiguredPage(browser, pageOptions);
+					if (existingEndpoint) {
+						const pages = await browser.pages();
+						page = pages[pages.length - 1] ?? (await browser.newPage());
+						await page.setViewport({ width: pageOptions.viewportWidth, height: pageOptions.viewportHeight });
+						page.setDefaultNavigationTimeout(pageOptions.timeout);
+						page.setDefaultTimeout(pageOptions.timeout);
+						if (pageOptions.userAgent) await page.setUserAgent(pageOptions.userAgent);
+						ownPage = false; // leave page open — session is managed externally
+					} else {
+						page = await newConfiguredPage(browser, pageOptions);
+						ownPage = true;
+					}
 				} catch (error) {
 					const msg = (error as Error).message ?? String(error);
-					throw new NodeOperationError(this.getNode(), `Failed to open new page: ${msg}`, {
+					throw new NodeOperationError(this.getNode(), `Failed to get page: ${msg}`, {
 						itemIndex: i,
 					});
 				}
@@ -264,7 +279,7 @@ export class PuppeteerBrowserless implements INodeType {
 						throw new NodeOperationError(this.getNode(), `Script error: ${msg}`, { itemIndex: i });
 					}
 				} finally {
-					await page.close();
+					if (ownPage) await page.close();
 				}
 			} finally {
 				await browser.disconnect();
