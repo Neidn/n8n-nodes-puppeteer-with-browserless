@@ -8,6 +8,7 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 
 import { buildWsEndpoint, connectBrowser, newConfiguredPage } from './shared/connect';
 import type { PageOptions } from './shared/types';
@@ -123,7 +124,17 @@ return { title };`,
 		// One browser connection shared across all items in this execution.
 		// Each item opens its own page, which is closed after use.
 		// browser.disconnect() keeps the Browserless session alive for reuse.
-		const browser = await connectBrowser(wsEndpoint);
+		let browser;
+		try {
+			browser = await connectBrowser(wsEndpoint);
+		} catch (error) {
+			const msg = (error as Error).message ?? String(error);
+			throw new NodeOperationError(
+				this.getNode(),
+				`Failed to connect to Browserless at ${wsEndpoint}: ${msg}`,
+				{ description: 'Check your Browserless URL and API token in the credential settings.' },
+			);
+		}
 
 		try {
 			for (let i = 0; i < items.length; i++) {
@@ -132,7 +143,6 @@ return { title };`,
 					timeout?: number;
 					viewportWidth?: number;
 					viewportHeight?: number;
-					waitUntil?: string;
 					userAgent?: string;
 				};
 
@@ -143,7 +153,15 @@ return { title };`,
 					userAgent: options.userAgent,
 				};
 
-				const page = await newConfiguredPage(browser, pageOptions);
+				let page;
+				try {
+					page = await newConfiguredPage(browser, pageOptions);
+				} catch (error) {
+					const msg = (error as Error).message ?? String(error);
+					throw new NodeOperationError(this.getNode(), `Failed to open new page: ${msg}`, {
+						itemIndex: i,
+					});
+				}
 
 				try {
 					const result = await evaluate(page, browser, jsCode);
@@ -153,10 +171,11 @@ return { title };`,
 						pairedItem: i,
 					});
 				} catch (error) {
+					const msg = (error as Error).message ?? String(error);
 					if (this.continueOnFail()) {
-						returnData.push({ json: { error: (error as Error).message }, pairedItem: i });
+						returnData.push({ json: { error: msg }, pairedItem: i });
 					} else {
-						throw error;
+						throw new NodeOperationError(this.getNode(), `Script error: ${msg}`, { itemIndex: i });
 					}
 				} finally {
 					await page.close();
