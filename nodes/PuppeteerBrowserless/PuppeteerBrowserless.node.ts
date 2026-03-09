@@ -230,7 +230,7 @@ export class PuppeteerBrowserless implements INodeType {
 					const newSession = after.filter((s) => !beforeIds!.has(s.browserId)).pop();
 					if (newSession) {
 						sessionInfo = {
-							browserWSEndpoint: fixSessionEndpoint(newSession.browserWSEndpoint, browserlessUrl),
+							browserWSEndpoint: fixSessionEndpoint(newSession.browserWSEndpoint, browserlessUrl, apiToken),
 							browserId: newSession.browserId,
 						};
 					}
