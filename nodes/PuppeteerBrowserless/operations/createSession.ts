@@ -33,8 +33,5 @@ export async function createSession(
 	const mySession = newSessions[newSessions.length - 1];
 	const browserWSEndpoint = fixSessionEndpoint(mySession.browserWSEndpoint, browserlessUrl, apiToken);
 
-	// Disconnect without closing — keeps the Chromium session alive in Browserless
-	await browser.disconnect();
-
 	return { browserWSEndpoint, browserId: mySession.browserId };
 }
