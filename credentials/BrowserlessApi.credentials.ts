@@ -1,4 +1,4 @@
-import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { ICredentialTestRequest, ICredentialType, INodeProperties } from 'n8n-workflow';
 
 export class BrowserlessApi implements ICredentialType {
 	name = 'browserlessApi';
@@ -6,6 +6,18 @@ export class BrowserlessApi implements ICredentialType {
 	displayName = 'Browserless API';
 
 	documentationUrl = 'https://docs.browserless.io/';
+
+	test: ICredentialTestRequest = {
+		request: {
+			// Convert ws:// → http://, wss:// → https:// for the HTTP health check
+			baseURL:
+				'={{$credentials.browserlessUrl.replace(/^wss/, "https").replace(/^ws/, "http").replace(/\\/+$/, "")}}',
+			url: '/config',
+			qs: {
+				token: '={{$credentials.apiToken}}',
+			},
+		},
+	};
 
 	properties: INodeProperties[] = [
 		{
