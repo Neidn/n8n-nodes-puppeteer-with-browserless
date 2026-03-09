@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer-core';
 import type { Browser, Page } from 'puppeteer-core';
-import type { PageOptions } from './types';
+import type { BrowserlessSession, PageOptions } from './types';
 
 /**
  * Builds the Browserless WebSocket endpoint URL.
@@ -20,6 +20,45 @@ export function buildWsEndpoint(browserlessUrl: string, apiToken: string): strin
  */
 export async function connectBrowser(wsEndpoint: string): Promise<Browser> {
 	return puppeteer.connect({ browserWSEndpoint: wsEndpoint });
+}
+
+/**
+ * Converts a WebSocket Browserless URL to its HTTP equivalent for REST calls.
+ * e.g. wss://host:443 → https://host:443, ws://host:3000 → http://host:3000
+ */
+function wsUrlToHttp(browserlessUrl: string): string {
+	return browserlessUrl
+		.replace(/^wss:\/\//, 'https://')
+		.replace(/^ws:\/\//, 'http://')
+		.replace(/\/+$/, '');
+}
+
+/**
+ * Fetches the list of active Browserless sessions via the /sessions HTTP endpoint.
+ */
+export async function getSessions(browserlessUrl: string, apiToken: string): Promise<BrowserlessSession[]> {
+	const base = wsUrlToHttp(browserlessUrl);
+	const url = apiToken ? `${base}/sessions?token=${encodeURIComponent(apiToken)}` : `${base}/sessions`;
+	const res = await fetch(url);
+	if (!res.ok) {
+		throw new Error(`GET /sessions returned ${res.status} ${res.statusText}`);
+	}
+	return res.json() as Promise<BrowserlessSession[]>;
+}
+
+/**
+ * Fixes the browserWSEndpoint returned by /sessions, which contains 0.0.0.0:3000
+ * as the host. Replaces it with the real host (and port) from the credential URL.
+ */
+export function fixSessionEndpoint(rawEndpoint: string, browserlessUrl: string): string {
+	const cleanBrowserless = browserlessUrl.replace(/\/+$/, '');
+	// Parse the target host from the credential URL (ws/wss → http/https for URL parsing)
+	const targetUrl = new URL(wsUrlToHttp(cleanBrowserless));
+	// Parse the raw endpoint (ws/wss → http/https for URL parsing)
+	const raw = new URL(rawEndpoint.replace(/^wss?:\/\//, 'http://'));
+	raw.host = targetUrl.host;
+	raw.protocol = cleanBrowserless.startsWith('wss://') ? 'wss:' : 'ws:';
+	return raw.toString();
 }
 
 /**
