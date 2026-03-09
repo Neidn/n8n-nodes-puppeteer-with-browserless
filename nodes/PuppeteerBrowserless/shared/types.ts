@@ -4,3 +4,9 @@ export interface PageOptions {
 	userAgent?: string;
 	timeout: number;
 }
+
+export interface BrowserlessSession {
+	browserId: string;
+	browserWSEndpoint: string;
+	[key: string]: unknown;
+}
