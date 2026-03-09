@@ -74,9 +74,9 @@ export async function getSessions(browserlessUrl: string, apiToken: string): Pro
 /**
  * Fixes the browserWSEndpoint returned by /sessions, which contains 0.0.0.0:3000
  * as the host. Replaces it with the real host and port from the credential URL.
- * Always produces a wss:// or ws:// URL with explicit port.
+ * Always produces a wss:// or ws:// URL with explicit port and token query param.
  */
-export function fixSessionEndpoint(rawEndpoint: string, browserlessUrl: string): string {
+export function fixSessionEndpoint(rawEndpoint: string, browserlessUrl: string, apiToken: string): string {
 	const normalized = toWsUrl(browserlessUrl);
 	const target = new URL(normalized.replace(/^wss?:\/\//, 'http://'));
 	// Parse raw endpoint (ws/wss → http for URL parsing)
@@ -84,6 +84,9 @@ export function fixSessionEndpoint(rawEndpoint: string, browserlessUrl: string):
 	raw.hostname = target.hostname;
 	raw.port = target.port;
 	raw.protocol = isSecureUrl(browserlessUrl) ? 'wss:' : 'ws:';
+	if (apiToken) {
+		raw.searchParams.set('token', apiToken);
+	}
 	return raw.toString();
 }
 
