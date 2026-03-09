@@ -29,15 +29,6 @@ export class PuppeteerBrowserless implements INodeType {
 		],
 		properties: [
 			{
-				displayName: 'URL',
-				name: 'url',
-				type: 'string',
-				default: '',
-				required: true,
-				placeholder: 'https://example.com',
-				description: 'URL to navigate to before running the script',
-			},
-			{
 				displayName: 'Script',
 				name: 'jsCode',
 				type: 'string',
@@ -77,19 +68,6 @@ return { title };`,
 						default: 720,
 					},
 					{
-						displayName: 'Wait Until',
-						name: 'waitUntil',
-						type: 'options',
-						options: [
-							{ name: 'Load', value: 'load' },
-							{ name: 'DOM Content Loaded', value: 'domcontentloaded' },
-							{ name: 'Network Idle (0 connections)', value: 'networkidle0' },
-							{ name: 'Network Idle (≤2 connections)', value: 'networkidle2' },
-						],
-						default: 'load',
-						description: 'When to consider the initial navigation complete',
-					},
-					{
 						displayName: 'User Agent',
 						name: 'userAgent',
 						type: 'string',
@@ -118,7 +96,6 @@ return { title };`,
 
 		try {
 			for (let i = 0; i < items.length; i++) {
-				const url = this.getNodeParameter('url', i) as string;
 				const jsCode = this.getNodeParameter('jsCode', i) as string;
 				const options = this.getNodeParameter('options', i, {}) as {
 					timeout?: number;
@@ -132,15 +109,12 @@ return { title };`,
 					timeout: options.timeout ?? 30000,
 					viewportWidth: options.viewportWidth ?? 1280,
 					viewportHeight: options.viewportHeight ?? 720,
-					waitUntil: (options.waitUntil ?? 'load') as PageOptions['waitUntil'],
 					userAgent: options.userAgent,
 				};
 
 				const page = await newConfiguredPage(browser, pageOptions);
 
 				try {
-					await page.goto(url, { waitUntil: pageOptions.waitUntil });
-
 					const result = await evaluate(page, browser, jsCode);
 
 					returnData.push({
