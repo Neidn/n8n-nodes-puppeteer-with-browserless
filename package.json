@@ -1,6 +1,6 @@
 {
-	"name": "n8n-nodes-puppeteer-with-browserless",
-	"version": "0.2.0",
+	"name": "@ahnlabcloudmate/n8n-nodes-puppeteer-with-browserless",
+	"version": "0.2.1",
 	"description": "n8n community node for controlling Puppeteer via a self-hosted Browserless instance",
 	"license": "MIT",
 	"homepage": "https://github.com/Neidn/n8n-nodes-puppeteer-with-browserless",
@@ -26,7 +26,7 @@
 		"lint": "n8n-node lint",
 		"lint:fix": "n8n-node lint --fix",
 		"release": "n8n-node release",
-		"prepublishOnly": "n8n-node prerelease"
+		"prepublishOnly": "pnpm run build"
 	},
 	"files": [
 		"dist"
@@ -57,6 +57,6 @@
 	},
 	"packageManager": "pnpm@10.30.3",
 	"publishConfig": {
-		"registry": "https://gitea.le.ahnlabcloudmate.com/api/packages/AhnlabCloudMate/npm/"
+		"registry": "https://gitea.le.ahnlabcloudmate.com/api/packages/ahnlabcloudmate/npm/"
 	}
 }
