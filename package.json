@@ -1,6 +1,6 @@
 {
 	"name": "@ahnlabcloudmate/n8n-nodes-puppeteer-with-browserless",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "n8n community node for controlling Puppeteer via a self-hosted Browserless instance",
 	"license": "MIT",
 	"homepage": "https://github.com/Neidn/n8n-nodes-puppeteer-with-browserless",
