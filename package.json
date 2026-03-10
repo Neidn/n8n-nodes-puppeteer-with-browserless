@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-puppeteer-with-browserless",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "n8n community node for controlling Puppeteer via a self-hosted Browserless instance",
 	"license": "MIT",
 	"homepage": "https://github.com/Neidn/n8n-nodes-puppeteer-with-browserless",
@@ -13,7 +13,7 @@
 	],
 	"author": {
 		"name": "Neidn",
-		"email": ""
+		"email": "dty3152@gmail.com"
 	},
 	"repository": {
 		"type": "git",
@@ -33,7 +33,7 @@
 	],
 	"n8n": {
 		"n8nNodesApiVersion": 1,
-		"strict": true,
+		"strict": false,
 		"credentials": [
 			"dist/credentials/BrowserlessApi.credentials.js"
 		],
@@ -55,5 +55,8 @@
 	"peerDependencies": {
 		"n8n-workflow": "*"
 	},
-	"packageManager": "pnpm@10.30.3"
+	"packageManager": "pnpm@10.30.3",
+	"publishConfig": {
+		"registry": "https://gitea.le.ahnlabcloudmate.com/api/packages/AhnlabCloudMate/npm/"
+	}
 }

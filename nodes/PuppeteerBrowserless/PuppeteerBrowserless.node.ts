@@ -25,9 +25,10 @@ export class PuppeteerBrowserless implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Puppeteer (Browserless)',
 		name: 'puppeteerBrowserless',
-		icon: 'fa:spider',
+		icon: 'file:puppeteer.svg',
 		group: ['transform'],
 		version: 1,
+		usableAsTool: true,
 		description: 'Run Puppeteer scripts on a self-hosted Browserless instance',
 		defaults: { name: 'Puppeteer (Browserless)' },
 		inputs: ['main'],
@@ -36,6 +37,7 @@ export class PuppeteerBrowserless implements INodeType {
 			{
 				name: 'browserlessApi',
 				required: true,
+				testedBy: 'browserlessApiTest',
 			},
 		],
 		properties: [
@@ -49,12 +51,14 @@ export class PuppeteerBrowserless implements INodeType {
 						name: 'Run Script',
 						value: 'runScript',
 						description: 'Connect to Browserless and run a Puppeteer script',
+						action: 'Connect to browserless and run a puppeteer script',
 					},
 					{
 						name: 'Create Session',
 						value: 'createSession',
 						description:
 							'Create a persistent Browserless session and return its WebSocket endpoint for reuse',
+						action: 'Create a persistent browserless session and return its web socket endpoint for reuse',
 					},
 				],
 				default: 'runScript',
@@ -90,7 +94,7 @@ export class PuppeteerBrowserless implements INodeType {
 				displayOptions: { show: { operation: ['runScript'] } },
 				options: [
 					{
-						displayName: 'Timeout (ms)',
+						displayName: 'Timeout (Ms)',
 						name: 'timeout',
 						type: 'number',
 						default: 30000,

@@ -6,3 +6,4 @@ CLAUDE.md
 .vscode
 
 pnpm-lock.yaml
+.npmrc
