@@ -7,6 +7,8 @@ export class BrowserlessApi implements ICredentialType {
 
 	documentationUrl = 'https://docs.browserless.io/';
 
+	icon = 'file:browserless.svg' as const;
+
 	testedBy = 'browserlessApiTest';
 
 	properties: INodeProperties[] = [
